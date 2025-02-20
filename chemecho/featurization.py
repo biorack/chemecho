@@ -8,7 +8,7 @@ from msbuddy.utils import form_arr_to_str
 
 from tqdm.auto import tqdm
 
-from utils import setup_logger, in_notebook
+from .utils import setup_logger, in_notebook
 
 logger = setup_logger()
 disable_progress_bars = not in_notebook()
