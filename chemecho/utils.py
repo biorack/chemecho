@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from io import StringIO
 
-from rdkit import AllChem
+from rdkit.Chem import AllChem
 from rdkit.Chem.rdMolDescriptors import CalcMolFormula
 
 from tqdm.auto import tqdm
