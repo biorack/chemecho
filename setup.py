@@ -9,7 +9,7 @@ setup(
         "numpy",
         "pandas",
         "scipy",
-        "rdkit-pypi",  # rdkit from PyPI
+        "rdkit",
         "tqdm",
         "msbuddy",
     ],
