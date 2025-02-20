@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from io import StringIO
 
-from rdkit import Chem
+from rdkit import AllChem
 from rdkit.Chem.rdMolDescriptors import CalcMolFormula
 
 from tqdm.auto import tqdm
@@ -147,4 +147,5 @@ def merge_in_nist(gnps_cleaned, nist_cleaned_path='./data/nist_cleaned.tsv', con
         nist_cleaned['spectrum'] = nist_cleaned['spectrum'].progress_apply(lambda x: np.array(eval(x)))
     
     merged_lib = pd.concat([gnps_cleaned, nist_cleaned]).reset_index(drop=True)
+    merged_lib['parent_formula'] = merged_lib.smiles.apply(lambda x: CalcMolFormula(AllChem.MolFromSmiles(x)))
     return merged_lib
