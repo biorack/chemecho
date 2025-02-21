@@ -11,7 +11,6 @@ from tqdm.auto import tqdm
 from .utils import in_notebook
 
 disable_progress_bars = not in_notebook()
-
 shared_data_dict = init_db()
 
 
@@ -118,10 +117,8 @@ def _process_spectrum_row(row, vector_assignment, max_ppm_error):
     try:
         subformula = assign_subformula(spec[0], parent_form, adduct=row.adduct, ms2_tol=max_ppm_error)
     except Exception:
-        logger.debug("Subformula assignment failed, skipping spectrum")
         return None, None
     if subformula is None:
-        logger.debug("No subformula assigned, skipping spectrum")
         return None, None
 
     subformula_lists = [sub.subform_list for sub in subformula]
