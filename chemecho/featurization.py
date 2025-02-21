@@ -205,3 +205,50 @@ def build_feature_matrix(peak_vectors, nl_vectors):
     feature_vector_index_map = _build_feature_vector_index_map(all_subformula, all_nl_subformula)
 
     return featurized_spectral_data, feature_vector_index_map
+
+
+def feature_reduction(featurized_spectral_data, feature_vector_index_map, min_occurence=6, max_correlation=None):
+    """
+    Reduces features by minimum occurence, and optionally, correlation
+    """
+    assert max_correlation is None or (max_correlation < 1.0 and max_correlation > 0.0)
+
+    feature_presence = featurized_spectral_data > 0.0
+    feature_counts = np.array(feature_presence.sum(axis=0)).flatten()
+
+    nonrare_features = feature_counts >= min_occurence
+    truncated_index_map_keys = np.array(list(feature_vector_index_map.keys()))[nonrare_features]
+    truncated_index_map = {str(feature): i for i, feature in enumerate(truncated_index_map_keys)}
+    truncated_spectral_data = featurized_spectral_data[:, nonrare_features]
+
+    if max_correlation is not None:
+        col_norms = np.sqrt(truncated_spectral_data.multiply(truncated_spectral_data).sum(axis=0)).A1
+
+        XtX = truncated_spectral_data.T * truncated_spectral_data
+        XtX_coo = XtX.tocoo()
+        data_normalized = XtX_coo.data / (col_norms[XtX_coo.row] * col_norms[XtX_coo.col])
+        correlation_matrix = sp.coo_matrix((data_normalized, (XtX_coo.row, XtX_coo.col)), shape=XtX.shape)
+
+        mask = (np.abs(correlation_matrix.data) > max_correlation) & (correlation_matrix.row < correlation_matrix.col)
+        rows = correlation_matrix.row[mask]
+        cols = correlation_matrix.col[mask]
+
+        to_drop = set()
+        for i, j in zip(rows, cols):
+            if i in to_drop or j in to_drop:
+                continue
+            nnz_i = truncated_spectral_data[:, i].getnnz()
+            nnz_j = truncated_spectral_data[:, j].getnnz()
+            # Remove the one with fewer nonzeros
+            if nnz_i < nnz_j:
+                to_drop.add(i)
+            else:
+                to_drop.add(j)
+
+        keep_idxs = [i for i in range(truncated_spectral_data.shape[1]) if i not in to_drop]
+        truncated_index_map_keys = np.array(list(truncated_index_map.keys()))[keep_idxs]
+        truncated_index_map = {str(feature): i for i, feature in enumerate(truncated_index_map_keys)}
+        truncated_spectral_data = truncated_spectral_data[:, keep_idxs]
+
+    return truncated_spectral_data, truncated_index_map
+
