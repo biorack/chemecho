@@ -228,7 +228,7 @@ def feature_reduction(featurized_spectral_data, feature_vector_index_map, min_oc
 
 def save_featurized_spectra(featurized_spectral_data, feature_vector_index_map, failed_spectra_idxs, workdir, overwrite=False, polarity='positive'):
     assert polarity in ['positive', 'negative']
-    assert featurized_spectral_data.shape[0] == len(feature_vector_index_map)
+    assert featurized_spectral_data.shape[1] == len(feature_vector_index_map)
     
     if not os.path.isfile(f'{workdir}/{polarity}_spectral_data.npz') or overwrite:
         sp.save_npz(f'{workdir}/{polarity}_spectral_data.npz', featurized_spectral_data)
