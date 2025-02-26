@@ -7,10 +7,25 @@ from sklearn.tree import _tree
 
 from rdkit.Chem import AllChem
 
+import numpy as np
 import joblib
 import json
 import os
 import re
+
+
+def filter_failed_idxs(featurized_spectral_data, merged_lib, failed_spectra_idxs):
+    """
+    Remove indicies that failed the vectorization process from matrix and dataframe
+    """
+    filter_mask = np.ones(featurized_spectral_data.shape[0], dtype=bool)
+    filter_mask[failed_spectra_idxs] = False
+    filtered_spectral_data = featurized_spectral_data[filter_mask]
+
+    failed_df_mask = merged_lib.index.isin(failed_spectra_idxs)
+    filtered_merged_lib = merged_lib.iloc[~failed_df_mask].reset_index(drop=True)
+
+    return filtered_spectral_data, filtered_merged_lib
 
 
 def _count_selfie_frag(encoded_selfie, frag):
