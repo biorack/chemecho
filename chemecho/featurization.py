@@ -214,7 +214,6 @@ def feature_reduction(featurized_spectral_data, feature_vector_index_map, min_oc
     """
     Reduces features by minimum occurence, and optionally, correlation
     """
-
     feature_presence = featurized_spectral_data > 0.0
     feature_counts = np.array(feature_presence.sum(axis=0)).flatten()
 
