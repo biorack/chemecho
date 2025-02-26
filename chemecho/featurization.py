@@ -107,6 +107,15 @@ def _assign_top_vectors(top_subformula, top_nl_subformula, norm_intensities):
     return peak_vector, nl_vector
 
 
+def vectorize_spectrum(spec, precursor_mz, parent_formula, adduct, feature_vector_index_map, 
+                       max_ppm_error=5):
+    nl_masses = precursor_mz - spec[0]
+    halogens = any(halo in parent_formula for halo in ['Cl', 'F', 'Br', 'I'])
+
+    subformula = assign_subformula(spec[0], parent_formula, adduct=adduct, ms2_tol=max_ppm_error)
+    pass
+
+
 def _process_spectrum_row(row, vector_assignment, max_ppm_error):
     """
     Processes a single MS2 library row and returns feature vector for peaks and neutral losses.

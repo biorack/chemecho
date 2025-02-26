@@ -55,15 +55,25 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
     Parameters:
         frag: either the group name derived from the group selfies package, or a SMARTS pattern
         merged_lib: ms2 library metadata with a 'smiles' and 'frag_encoded_selfie' columns
+        featurized_spectral_data: previously embedded library spectra
+        workdir: path to working directory
+        polarity: either 'negative' or 'positive'
         frag_type: the type of frag provided to function
         max_depth: maximum depth of tree. Keep the trees shallow if the intention is to build queries
+        min_frag_count: the minimum number of substructures to be labeled as positive
+        min_positive_unique: the minimum number of unique structures in training dataset
         save_mode: if True, saves model and report to workdir 
     """
     assert frag_type in ['group_selfies', 'smarts']
 
-    if os.path.isfile(f"{workdir}/models/{polarity}_{frag}_model.pkl"):
-        print(f'\nAlready Completed Training for {frag}')
-        return
+    if not os.path.isdir(f"{workdir}/models/"):
+        os.mkdir(f"{workdir}/models/")
+
+    if os.path.isfile(f"{workdir}/models/{polarity}_{frag}_model.joblib"):
+        clf = joblib.load(f"{workdir}/models/{polarity}_{frag}_model.joblib")
+        with open(f"{workdir}/models/{polarity}_{frag}_report.json", "w") as f:
+            report_dict = json.load(f)
+        return clf, report_dict
 
     if frag_type == 'group_selfies':
         merged_lib['frag_count'] = merged_lib.frag_encoded_selfie.apply(lambda x: _count_selfie_frag(x, frag))
