@@ -71,7 +71,7 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
 
     if os.path.isfile(f"{workdir}/models/{polarity}_{frag}_model.joblib"):
         clf = joblib.load(f"{workdir}/models/{polarity}_{frag}_model.joblib")
-        with open(f"{workdir}/models/{polarity}_{frag}_report.json", "w") as f:
+        with open(f"{workdir}/models/{polarity}_{frag}_report.json", "r") as f:
             report_dict = json.load(f)
         return clf, report_dict
 
