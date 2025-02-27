@@ -115,7 +115,7 @@ def _extract_rules(tree, node, conditions, feature_names, positive_class=1, tole
     """Recursively extract rules from the entire tree."""
     rules = []
     if tree.feature[node] == _tree.TREE_UNDEFINED:
-        if _is_positive_node(tree, node, positive_class):
+        if _is_positive_node(tree, node):
             rules.append(list(conditions))
         return rules
     feature = feature_names[tree.feature[node]]
