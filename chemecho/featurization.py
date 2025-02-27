@@ -108,12 +108,48 @@ def _assign_top_vectors(top_subformula, top_nl_subformula, norm_intensities):
 
 
 def vectorize_spectrum(spec, precursor_mz, parent_formula, adduct, feature_vector_index_map, 
-                       max_ppm_error=5):
+                       max_ppm_error=5, vector_assignment='blur'):
     nl_masses = precursor_mz - spec[0]
     halogens = any(halo in parent_formula for halo in ['Cl', 'F', 'Br', 'I'])
 
     subformula = assign_subformula(spec[0], parent_formula, adduct=adduct, ms2_tol=max_ppm_error)
-    pass
+    subformula_lists = [sub.subform_list for sub in subformula]
+    nl_results = [
+        query_neutral_mass(nl_mass, max_ppm_error, True, halogens, shared_data_dict)
+        if nl_mass > 0 else []
+        for nl_mass in nl_masses
+    ]
+    
+    subform_notna_mask = np.array([len(lst) > 0 for lst in subformula_lists])
+    subform_only_i = spec[1][subform_notna_mask]
+    norm_intensities = subform_only_i / subform_only_i.sum()
+
+    if vector_assignment == 'blur':
+        peak_vector, nl_vector=  _assign_blur_vectors(subformula_lists, nl_results, norm_intensities)
+    elif vector_assignment == 'top':
+        top_subformula = _get_top_subformula(subformula)
+        top_nl_subformula = _get_top_nl_subformula(nl_results)
+        peak_vector, nl_vector = _assign_top_vectors(top_subformula, top_nl_subformula, norm_intensities)
+    
+    row, col, data = [], [], []
+    for subform, intensity in zip(peak_vector[0], peak_vector[1]):
+        col_name = f'{subform}_peak'
+        if col_name in feature_vector_index_map.keys() and not np.isnan(float(intensity)): 
+            col_idx = feature_vector_index_map[col_name]
+            row.append(0)
+            col.append(col_idx)
+            data.append(float(intensity))
+
+    for subform, intensity in zip(nl_vector[0], nl_vector[0]):
+        col_name = f'{subform}_nl'
+        if col_name in feature_vector_index_map.keys() and not np.isnan(float(intensity)): 
+            col_idx = feature_vector_index_map[col_name]
+            row.append(0)
+            col.append(col_idx)
+            data.append(float(intensity))
+
+    featurized_spectrum = sp.coo_matrix((data, (row, col)), shape=(1, len(feature_vector_index_map))).tocsr()
+    return featurized_spectrum
 
 
 def _process_spectrum_row(row, vector_assignment, max_ppm_error):
