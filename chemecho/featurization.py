@@ -140,7 +140,7 @@ def vectorize_spectrum(spec, precursor_mz, parent_formula, adduct, feature_vecto
             col.append(col_idx)
             data.append(float(intensity))
 
-    for subform, intensity in zip(nl_vector[0], nl_vector[0]):
+    for subform, intensity in zip(nl_vector[0], nl_vector[1]):
         col_name = f'{subform}_nl'
         if col_name in feature_vector_index_map.keys() and not np.isnan(float(intensity)): 
             col_idx = feature_vector_index_map[col_name]
