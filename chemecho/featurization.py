@@ -125,7 +125,7 @@ def vectorize_spectrum(spec, precursor_mz, parent_formula, adduct, feature_vecto
     norm_intensities = subform_only_i / subform_only_i.sum()
 
     if vector_assignment == 'blur':
-        peak_vector, nl_vector=  _assign_blur_vectors(subformula_lists, nl_results, norm_intensities)
+        peak_vector, nl_vector = _assign_blur_vectors(subformula_lists, nl_results, norm_intensities)
     elif vector_assignment == 'top':
         top_subformula = _get_top_subformula(subformula)
         top_nl_subformula = _get_top_nl_subformula(nl_results)
@@ -148,7 +148,7 @@ def vectorize_spectrum(spec, precursor_mz, parent_formula, adduct, feature_vecto
             col.append(col_idx)
             data.append(float(intensity))
 
-    featurized_spectrum = sp.coo_matrix((data, (row, col)), shape=(1, len(feature_vector_index_map))).tocsr()
+    featurized_spectrum = sp.coo_matrix((data, (row, col)), shape=(0, len(feature_vector_index_map))).tocsr()
     return featurized_spectrum
 
 
