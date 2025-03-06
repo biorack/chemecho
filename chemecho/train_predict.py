@@ -69,9 +69,12 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
     if not os.path.isdir(f"{workdir}/models/"):
         os.mkdir(f"{workdir}/models/")
 
-    if os.path.isfile(f"{workdir}/models/{polarity}_{frag}_model.joblib"):
-        clf = joblib.load(f"{workdir}/models/{polarity}_{frag}_model.joblib")
-        with open(f"{workdir}/models/{polarity}_{frag}_report.json", "r") as f:
+    model_path = f"{workdir}/models/{polarity}_{frag}_model.joblib"
+    report_path = f"{workdir}/models/{polarity}_{frag}_report.json"
+
+    if os.path.isfile(model_path):
+        clf = joblib.load(model_path)
+        with open(report_path, "r") as f:
             report_dict = json.load(f)
         return clf, report_dict
 
@@ -98,8 +101,8 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
     report_dict['pos_smiles'] = merged_lib[frag_present].smiles.unique().tolist()
 
     if save_model:
-        joblib.dump(clf, f"{workdir}/models/{polarity}_{frag}_model.joblib")
-        with open(f"{workdir}/models/{polarity}_{frag}_report.json", "w") as f:
+        joblib.dump(clf, model_path)
+        with open(report_path, "w") as f:
             json.dump(report_dict, f, indent=4)
 
     return clf, report_dict
