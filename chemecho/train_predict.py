@@ -48,6 +48,7 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
                             max_depth=3,
                             min_frag_count=1,
                             min_positive_unique=10,
+                            class_weights='balanced',
                             save_model=True):
     """
     Train decision tree to predict a given group selfie frag or SMARTS pattern
@@ -94,7 +95,7 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
         featurized_spectral_data, frag_present, test_size=0.2, random_state=42, stratify=frag_present
     )
 
-    clf = DecisionTreeClassifier(criterion='gini', max_depth=max_depth, class_weight="balanced")
+    clf = DecisionTreeClassifier(criterion='gini', max_depth=max_depth, class_weight=class_weights)
     clf.fit(X_train, y_train)
     
     report_dict = classification_report(y_test, clf.predict(X_test), output_dict=True)
