@@ -115,7 +115,7 @@ def _is_positive_node(tree, node):
     return values[0] < values[1] if len(values) > 1 else values[0] >= 0.5
 
 
-def _extract_rules(tree, node, conditions, feature_names, precision, positive_class=1, tolerance=None):
+def _extract_rules(tree, node, conditions, feature_names, precision, positive_class, tolerance):
     """Recursively extract rules from the entire tree."""
     rules = []
     if tree.feature[node] == _tree.TREE_UNDEFINED:
@@ -136,10 +136,10 @@ def _extract_rules(tree, node, conditions, feature_names, precision, positive_cl
     right_condition = f"{base}:INTENSITYPERCENT={tree.threshold[node]:.{precision}f}"
     rules += _extract_rules(tree, tree.children_left[node],
                            conditions + [left_condition],
-                           feature_names, positive_class, tolerance)
+                           feature_names, precision, positive_class, tolerance)
     rules += _extract_rules(tree, tree.children_right[node],
                            conditions + [right_condition],
-                           feature_names, positive_class, tolerance)
+                           feature_names, precision, positive_class, tolerance)
     return rules
 
 
@@ -147,7 +147,7 @@ def convert_tree_to_massql(decision_tree, feature_names, positive_class=1,
                            data_type="MS2DATA", tolerance=None, polarity=None, precision=3):
     """Convert an entire decision tree into a MassQL query."""
     tree_ = decision_tree.tree_
-    rules = _extract_rules(tree_, 0, [], feature_names, positive_class, tolerance, precision)
+    rules = _extract_rules(tree_, 0, [], feature_names, precision, positive_class, tolerance)
     if not rules:
         return "-- No rules found."
     queries = []
