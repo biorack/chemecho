@@ -105,7 +105,7 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
     train_groups, test_groups = train_test_split(
         smiles_grouped,
         test_size=0.2,
-        stratify=grouped['frag_present'],
+        stratify=smiles_grouped['frag_present'],
         random_state=42
     )
 
