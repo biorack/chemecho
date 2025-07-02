@@ -95,7 +95,7 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
     merged_lib['canonical_smiles'] = merged_lib['smiles'].apply(_get_canonical_smiles)
     smiles_grouped = merged_lib.groupby('canonical_smiles')['frag_present'].agg(lambda x: int(x.max())).reset_index()
     
-    unique_pos_structures = merged_lib['frag_present'].inchikey_smiles.unique()
+    unique_pos_structures = merged_lib[merged_lib['frag_present']].inchikey_smiles.unique()
     
     if len(unique_pos_structures) < min_positive_unique:
         print(f'\nInsufficient positive samples for {frag}')
