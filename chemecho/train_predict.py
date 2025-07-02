@@ -28,6 +28,13 @@ def filter_failed_idxs(featurized_spectral_data, merged_lib, failed_spectra_idxs
     return filtered_spectral_data, filtered_merged_lib
 
 
+def _get_canonical_smiles(smiles):
+    mol = AllChem.MolFromSmiles(smiles)
+    if mol:
+        return AllChem.MolToSmiles(mol, canonical=True)
+    return None
+
+
 def _count_selfie_frag(encoded_selfie, frag):
     pattern = re.compile(rf"{re.escape(frag)}(?!\d)")
     matches = pattern.findall(encoded_selfie)
@@ -84,16 +91,36 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
     elif frag_type == 'smarts':
         merged_lib['frag_count'] = merged_lib.smiles.apply(lambda x: _count_smarts(x, frag))
     
-    frag_present = (merged_lib['frag_count'] >= min_frag_count).tolist()
+    merged_lib['frag_present'] = (merged_lib['frag_count'] >= min_frag_count).tolist()
+    merged_lib['canonical_smiles'] = merged_lib['smiles'].apply(_get_canonical_smiles)
+    smiles_grouped = merged_lib.groupby('canonical_smiles')['frag_present'].agg(lambda x: int(x.max())).reset_index()
+    
     unique_pos_structures = merged_lib[frag_present].inchikey_smiles.unique()
     
     if len(unique_pos_structures) < min_positive_unique:
         print(f'\nInsufficient positive samples for {frag}')
         return
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        featurized_spectral_data, frag_present, test_size=0.2, random_state=42, stratify=frag_present
+    # split by canonical smiles rather than spectra
+    train_groups, test_groups = train_test_split(
+        smiles_grouped,
+        test_size=0.2,
+        stratify=grouped['frag_present'],
+        random_state=42
     )
+
+    merged_lib = merged_lib.reset_index(drop=True)
+    merged_lib['row_index'] = merged_lib.index
+    
+    train_indices = merged_lib[merged_lib['canonical_smiles'].isin(train_groups['canonical_smiles'])]['row_index'].values
+    test_indices  = merged_lib[merged_lib['canonical_smiles'].isin(test_groups['canonical_smiles'])]['row_index'].values
+    
+    X_train = featurized_spectral_data[train_indices]
+    X_test  = featurized_spectral_data[test_indices]
+    
+    frag_present = merged_lib['frag_present'].to_numpy()
+    y_train = frag_present[train_indices]
+    y_test  = frag_present[test_indices]
 
     clf = DecisionTreeClassifier(criterion='gini', max_depth=max_depth, class_weight=class_weights)
     clf.fit(X_train, y_train)

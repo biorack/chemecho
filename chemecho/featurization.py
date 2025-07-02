@@ -148,7 +148,7 @@ def vectorize_spectrum(spec, precursor_mz, parent_formula, adduct, feature_vecto
             col.append(col_idx)
             data.append(float(intensity))
 
-    featurized_spectrum = sp.coo_matrix((data, (row, col)), shape=(0, len(feature_vector_index_map))).tocsr()
+    featurized_spectrum = sp.coo_matrix((data, (row, col)), shape=(1, len(feature_vector_index_map))).tocsr()
     return featurized_spectrum
 
 
