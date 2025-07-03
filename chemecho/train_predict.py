@@ -99,7 +99,7 @@ def train_substructure_tree(frag, merged_lib, featurized_spectral_data, workdir,
     
     if len(unique_pos_structures) < min_positive_unique:
         print(f'\nInsufficient positive samples for {frag}')
-        return
+        return None, None
 
     # split by canonical smiles rather than spectra
     train_groups, test_groups = train_test_split(
